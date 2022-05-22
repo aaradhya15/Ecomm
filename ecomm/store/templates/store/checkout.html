@@ -39,6 +39,7 @@
             <br>
             <div class="box-element hidden" id="payment-info">
                 <small>Paypal Options</small>
+                <button id="make-payment">Make Payment</button>
             </div>
             
         </div>
@@ -67,5 +68,35 @@
         if(shipping=='False'){
             document.getElementById('shipping-info').innerHTML = ''
         }
+        
+        if(user!='AnonymousUser'){
+            //hide name and email if registered user
+            document.getElementById('user-info').innerHTML = ''
+        }
+
+        if(shipping == 'False' && user!='AnonymousUser'){
+            //hide entire form if digital product and signed in user
+            document.getElementById('form-wrapper').innerHTML = ''
+            document.getElementById('payment-info').classList.remove('hidden')
+        }
+        
+        //adding paypal options
+        var form = document.getElementById('form')
+        form.addEventListener('submit', function(e){
+            e.preventDefault()
+            console.log('Form submitted...')
+            document.getElementById('form-button').classList.add('hidden')
+            document.getElementById('payment-info').classList.remove('hidden')
+            
+        })
+        document.getElementById('make-payment').addEventListener('click', function(e){
+            submitFormData()
+        })
+
+        function submitFormData(){
+            console.log('Payment button clicked')
+        }
+
+        
     </script>
 {% endblock content %}
