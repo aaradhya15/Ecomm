@@ -2,52 +2,37 @@ from django.shortcuts import render
 from .models import *
 from django.http import JsonResponse
 import json,datetime
-from .utils import cookieCart
+from .utils import cookieCart, cartData, guestOrder
 
 # Create your views here.
 def store(request):
-     if request.user.is_authenticated:
-          customer = request.user.customer
-          order, created = Order.objects.get_or_create(customer = customer, complete = False)
-          items = order.orderitem_set.all()
-          cartItems = order.get_cart_items
-     else:
-          cookieData = cookieCart(request)
-          cartItems = cookieData['cartItems']
+     data = cartData(request)
+     cartItems = data['cartItems']
 
      products = Product.objects.all()
      context = {'products' : products, 'cartItems':cartItems}
      return render(request, 'store/store.html', context)
 
+
 def cart(request):
-     if request.user.is_authenticated:
-          customer = request.user.customer
-          order, created = Order.objects.get_or_create(customer = customer, complete = False)
-          items = order.orderitem_set.all()
-          cartItems = order.get_cart_items
-     else:
-          cookieData = cookieCart(request)
-          cartItems = cookieData['cartItems']
-          order = cookieData['order']
-          items = cookieData['items']
+     data = cartData(request)
+     cartItems = data['cartItems']
+     order = data['order']
+     items = data['items']
 
      context = {'items' : items, 'order':order, 'cartItems':cartItems}
      return render(request, 'store/cart.html', context)
 
+
 def checkout(request):
-     if request.user.is_authenticated:
-          customer = request.user.customer
-          order, created = Order.objects.get_or_create(customer = customer, complete = False)
-          items = order.orderitem_set.all()
-          cartItems = order.get_cart_items
-     else:
-          cookieData = cookieCart(request)
-          cartItems = cookieData['cartItems']
-          order = cookieData['order']
-          items = cookieData['items']
+     data = cartData(request)
+     cartItems = data['cartItems']
+     order = data['order']
+     items = data['items']
 
      context = {'items' : items, 'order':order, 'cartItems' : cartItems}
      return render(request, 'store/checkout.html', context)
+
 
 # api to update cart value and items
 def updateItem(request):
@@ -69,25 +54,34 @@ def updateItem(request):
      elif action =='remove':
           orderItem.quantity -= 1
 
+     #save item in db
      orderItem.save()
+     #delete the item from db if its value is <=0
      if orderItem.quantity<=0:
           orderItem.delete()
      return JsonResponse('Item was added/removed', safe=False)
 
+
 def processOrder(request):
      transaction_id = datetime.datetime.now().timestamp()
      data = json.loads(request.body)
+
      if request.user.is_authenticated:
           customer = request.user.customer
           order, created = Order.objects.get_or_create(customer = customer, complete = False)
-          total = float(data['form']['total'])
-          order.transaction_id = transaction_id
 
-          if total == order.get_cart_total:
-               order.complete = True
-          order.save()
+     else:
+          customer, order = guestOrder(request, data)
+     
+     #check if frontends total matches db total before proceeding with order
+     total = float(data['form']['total'])
+     order.transaction_id = transaction_id
+     if total == order.get_cart_total:
+          order.complete = True
+     order.save()
 
-          if order.shipping == True:
+     #if order is not digital, save the shipping info in db
+     if order.shipping == True:
                ShippingAddress.objects.create(
                     customer =customer,
                     order = order,
@@ -95,9 +89,7 @@ def processOrder(request):
                     city = data['shipping']['city'],
                     state = data['shipping']['state'],
                     zipcode = data['shipping']['zip'],
-
                )
 
-     else:
-          print('user not logged in')
+
      return JsonResponse('Payment submitted...', safe=False)

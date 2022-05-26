@@ -127,6 +127,11 @@
             .then((data)=> {
                 console.log('Success:', data)
                 alert('Transaction completed')
+
+                //clear cart ater order has been placed
+                cart = {}
+                console.log('Cart was cleared')
+                document.cookie = 'cart='+ JSON.stringify(cart)+ ";domain=;path=/"
                 window.location.href = "{% url 'store' %}"
             })
         }
