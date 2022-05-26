@@ -26,8 +26,32 @@
               }
           }
           return cookieValue;
-}
-const csrftoken = getToken('csrftoken');
+        }
+        const csrftoken = getToken('csrftoken');
+
+        function getCookie(name){
+          //split and get all name value pairs
+          var cookieArr = document.cookie.split(";");
+
+          //loop through all pairs and compared with the required cookie name
+          for(var i=0;i<cookieArr.length;i++)
+          {
+            var cookiePair = cookieArr[i].split("=");
+            
+            if(name==cookiePair[0].trim()){
+              return decodeURIComponent(cookiePair[1]);
+            }
+
+          }
+          return null;
+        }
+        var cart = JSON.parse(getCookie('cart'));
+        if(cart == undefined){
+          cart = {}
+          console.log('Cart was created')
+          document.cookie = 'cart='+ JSON.stringify(cart)+ ";domain=;path=/"
+        }
+        console.log('cart:', cart);
  
 </script>
 </head>
@@ -52,7 +76,7 @@ const csrftoken = getToken('csrftoken');
      	<a href="{% url 'cart' %}">
     		<img  id="cart-icon" src="{% static 'images/cart.png' %}">
     	</a>
-    	<p id="cart-total">{{order.get_cart_items}}</p>
+    	<p id="cart-total">{{cartItems}}</p>
 
     </div>
   </div>

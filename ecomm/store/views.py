@@ -2,6 +2,7 @@ from django.shortcuts import render
 from .models import *
 from django.http import JsonResponse
 import json,datetime
+from .utils import cookieCart
 
 # Create your views here.
 def store(request):
@@ -9,12 +10,13 @@ def store(request):
           customer = request.user.customer
           order, created = Order.objects.get_or_create(customer = customer, complete = False)
           items = order.orderitem_set.all()
+          cartItems = order.get_cart_items
      else:
-          #creating empty cart for now for non-logged in users
-          items=[]
-          order = {'get_cart_total':0, 'get_cart_items':0, 'shipping': False}
+          cookieData = cookieCart(request)
+          cartItems = cookieData['cartItems']
+
      products = Product.objects.all()
-     context = {'products' : products, 'order' : order}
+     context = {'products' : products, 'cartItems':cartItems}
      return render(request, 'store/store.html', context)
 
 def cart(request):
@@ -22,12 +24,14 @@ def cart(request):
           customer = request.user.customer
           order, created = Order.objects.get_or_create(customer = customer, complete = False)
           items = order.orderitem_set.all()
+          cartItems = order.get_cart_items
      else:
-          #creating empty cart for now for non-logged in users
-          items=[]
-          order = {'get_cart_total':0, 'get_cart_items':0, 'shipping': False}
+          cookieData = cookieCart(request)
+          cartItems = cookieData['cartItems']
+          order = cookieData['order']
+          items = cookieData['items']
 
-     context = {'items' : items, 'order':order}
+     context = {'items' : items, 'order':order, 'cartItems':cartItems}
      return render(request, 'store/cart.html', context)
 
 def checkout(request):
@@ -35,12 +39,14 @@ def checkout(request):
           customer = request.user.customer
           order, created = Order.objects.get_or_create(customer = customer, complete = False)
           items = order.orderitem_set.all()
+          cartItems = order.get_cart_items
      else:
-          #creating empty cart for now for non-logged in users
-          items=[]
-          order = {'get_cart_total':0, 'get_cart_items':0, 'shipping': False}
+          cookieData = cookieCart(request)
+          cartItems = cookieData['cartItems']
+          order = cookieData['order']
+          items = cookieData['items']
 
-     context = {'items' : items, 'order':order}
+     context = {'items' : items, 'order':order, 'cartItems' : cartItems}
      return render(request, 'store/checkout.html', context)
 
 # api to update cart value and items
@@ -66,7 +72,7 @@ def updateItem(request):
      orderItem.save()
      if orderItem.quantity<=0:
           orderItem.delete()
-     return JsonResponse('Item was added', safe=False)
+     return JsonResponse('Item was added/removed', safe=False)
 
 def processOrder(request):
      transaction_id = datetime.datetime.now().timestamp()
