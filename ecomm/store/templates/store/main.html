@@ -73,7 +73,13 @@
     <div class="form-inline my-2 my-lg-0">
      	<a href="#"class="btn btn-warning">Login</a>
      	
-     	<a href="{% url 'cart' %}">
+     	<a >
+    		<img  id="cart-icon" src="{% static 'images/customer.png' %}">
+    	</a>
+      <a href="{% url 'wishlist' %}">
+    		<img  id="cart-icon" src="{% static 'images/wishlist.png' %}">
+    	</a>
+      <a href="{% url 'cart' %}">
     		<img  id="cart-icon" src="{% static 'images/cart.png' %}">
     	</a>
     	<p id="cart-total">{{cartItems}}</p>
@@ -95,6 +101,8 @@
 	<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
   
   <script type = "text/javascript" src="{% static 'js/cart.js' %}"></script>
+
+  <script type = "text/javascript" src="{% static 'js/wishlist.js' %}"></script>
 
 </body>
 </html></html>

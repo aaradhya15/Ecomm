@@ -34,7 +34,12 @@ function addCookieItem(productId, action){
             console.log('Item should be deleted')
             delete cart[productId];
         }
+    }
 
+    if(action=='delete'){
+        cart[productId]['quantity']=0
+        console.log('Item should be deleted')
+        delete cart[productId];
     }
 
     document.cookie = 'cart='+ JSON.stringify(cart)+ ";domain=;path=/"

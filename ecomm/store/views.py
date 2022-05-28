@@ -48,11 +48,12 @@ def updateItem(request):
      order, created = Order.objects.get_or_create(customer = customer, complete = False)
      orderItem, created = OrderItem.objects.get_or_create(order = order, product = product)
 
-
      if action =='add':
           orderItem.quantity += 1
      elif action =='remove':
           orderItem.quantity -= 1
+     elif action=='delete':
+          orderItem.quantity = 0
 
      #save item in db
      orderItem.save()
@@ -93,3 +94,40 @@ def processOrder(request):
 
 
      return JsonResponse('Payment submitted...', safe=False)
+
+#api for getting all orders for a particular user
+def getOrders(request):
+     data = cartData(request)
+     cartItems = data['cartItems']
+
+     #get all orders and pass into template
+
+
+def wishlist(request):
+     data = cartData(request)
+     cartItems = data['cartItems']
+
+     customer = request.user
+     user = Customer.objects.get(user = customer)
+     wishListItems = user.wishlist_set.all()
+     wishListCount = wishListItems.count()
+     context = {'wishListItems' : wishListItems, 'cartItems':cartItems, 'wishListCount': wishListCount}
+     return render(request, 'store/wishlist.html', context)
+
+def update_wishlist(request):
+     data = json.loads(request.body)
+     productId = data['productId']
+     action = data['action']
+
+     product = Product.objects.get(id=productId)
+     customer = request.user.customer
+
+     if(action=='move'):
+          wishListItem, created = WishList.objects.get_or_create(product = product, customer=customer)
+          wishListItem.save()
+     #user = Customer.objects.get(user = customer)
+     else:
+          wishListItem = WishList.objects.get(product = product, customer = customer)
+          print(wishListItem)
+          wishListItem.delete()
+     return JsonResponse({"wishListItem": wishListItem.product.name})
